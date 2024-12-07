@@ -17,7 +17,7 @@ const Home = () => {
         setLoading(true);
 
         try {
-            axios.get(`https://pokeapi.co/api/v2/pokemon/${pokemon}`)
+            axios.get(`https://pokeapi.co/api/v2/pokemon/${pokemon.toLowerCase()}`)
                 .then((response) => {
                     console.log(response);
                     setPokemon("");

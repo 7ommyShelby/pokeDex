@@ -2,6 +2,13 @@
     font-family: "Courier Prime", monospace;
 }
 
+.hero{
+    background-image: url('wall.jpg');
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: bottom;
+}
+
 
 .card {
     width: 20rem;

@@ -64,8 +64,8 @@
 .loader {
     display: block;
     --height-of-loader: 4px;
-    --loader-color: #0071e2;
-    width: 200px;
+    --loader-color: #4800ff;
+    width: 100vw;
     height: var(--height-of-loader);
     border-radius: 30px;
     background-color: rgba(0, 0, 0, 0.2);

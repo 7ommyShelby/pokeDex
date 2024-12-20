@@ -8,9 +8,11 @@ const Home = () => {
     const [loading, setLoading] = useState(false);
     const [searchResult, setSearchResult] = useState(null)
     const [types, setTypes] = useState(null)
-    const [filter, setFilter] = useState(null)
+    const [allfilter, setFilter] = useState(null)
+    const [result, setResult] = useState(null)
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 5;
 
-    // console.log(loading, "loading");
 
     const search = () => {
 
@@ -20,7 +22,7 @@ const Home = () => {
 
         axios.get(`https://pokeapi.co/api/v2/pokemon/${pokemon.toLowerCase()}`)
             .then((response) => {
-                console.log(response);
+                // console.log(response);
                 setPokemon("");
                 setSearchResult(response.data);
             })
@@ -37,54 +39,85 @@ const Home = () => {
         axios.get('https://pokeapi.co/api/v2/type')
             .then((response) => {
                 setTypes(response.data.results)
-                console.log(response);
+                // console.log(response);
             })
             .catch((err) => {
                 console.log(err);
             })
+
     }, [types])
 
     const filterRes = (type) => {
         setFilter(null)
+        setSearchResult(null)
         if (type === "") {
             return;
         }
-
         const url = types.find((e) => e.name === type).url
+        setLoading(true)
 
         axios.get(url)
             .then((response) => {
-                setFilter(response.data.pokemon)
-                console.log(response);
+                setFilter(response.data.pokemon);
+                setCurrentPage(1);
+                // console.log(response);
             })
             .catch((err) => {
                 console.log(err);
             })
+            .finally(() => {
+                setLoading(false)
+            })
     }
 
+    const lastIdx = currentPage * itemsPerPage;
+    const firstIdx = lastIdx - itemsPerPage;
+
+    useEffect(() => {
+
+        console.log(firstIdx, "frstindex", lastIdx, "lastindex", currentPage, "inside effect");
+
+        setResult(allfilter && allfilter.slice(firstIdx, lastIdx));
+
+    }, [allfilter, currentPage]);
+
+    const goToNextPage = () => {
+        if (currentPage < Math.ceil(allfilter.length / itemsPerPage)) {
+
+            console.log(firstIdx, "frstindex", lastIdx, "lastindex", currentPage, "inside fun");
+
+            setCurrentPage((prev) => prev + 1);
+        }
+    };
+
+    console.log(firstIdx, "frstindex", lastIdx, "lastindex", currentPage, "GLOBAL");
+
+    const goToPreviousPage = () => {
+        if (currentPage > 1) {
+            setCurrentPage((prev) => prev - 1);
+        }
+    };
 
     useEffect(() => {
         alltypes()
     }, [])
 
 
-    console.log(pokemon);
-    console.log(types);
-    console.log(filter);
+    console.log(allfilter, "AllFilter");
 
 
     return (
         <>
-            <main className='h-screen'>
+            <main className='min-h-screen h-fit bg-slate-500'>
                 <nav className='w-full bg-amber-400 p-2 '>
                     <h1 className='font-bold text-xl'>PokeDEX</h1>
                 </nav>
 
-                <div className='hero p-2 h-full flex-col flex items-center justify-center gap-2 m-auto flex-wrap'>
+                <div className='hero p-2 h-40 flex-col flex items-center justify-center gap-2 m-auto flex-wrap'>
 
-                    <div>
-                        <label htmlFor="">Filter</label>
-                        <select onChange={(e) => { filterRes(e.target.value) }} name="" id="">
+                    <div className='flex gap-2 items-center'>
+                        <label className='text-white' htmlFor="">Filter</label>
+                        <select className='rounded-md' onChange={(e) => { filterRes(e.target.value) }} name="" id="">
                             <option value="">Select a type</option>
                             {
                                 types?.map((e) => {
@@ -99,58 +132,68 @@ const Home = () => {
                     </div>
 
                     <div className=''>
-                        <label className='mr-2' htmlFor="">Find Pokemon</label>
                         <input value={pokemon} onChange={(e) => { setPokemon(e.target.value) }} className='rounded-md p-1 mr-2 placeholder-pink-500' placeholder='Search...' type="text" name="" id="" />
                         <button onClick={search} className='shadow px-2 rounded-md bg-red-400'>Search</button>
                     </div>
 
                 </div>
 
-                <div className='w-full text-center'>
+                <div className='w-full'>
                     {
                         loading ? (
                             <>
-                                <div className='w-full h-full flex items-center justify-center '>
-                                    <Loader />
-                                </div>
+                                <Loader />
                             </>
                         ) : searchResult ? (
                             <div className='h-full w-full flex items-center justify-center'>
                                 <Card data={searchResult} />
                             </div>
-                        ) : filter ? (
+                        ) : result ? (
                             <>
-                                <div className='flex gap-2 w-full flex-wrap'>
-                                    {
-                                        filter.map((e) => {
-                                            return (
-                                                <>
+                                <div className='w-full p-2'>
+                                    <div className='flex gap-2 w-full flex-wrap justify-around items-center'>
+                                        {
+                                            result.map((e) => {
+                                                return (
+                                                    <>
 
-                                                    <Info url={e.pokemon.url} />
+                                                        <Info
+                                                            url={e.pokemon.url}
+                                                            page={currentPage}
+                                                        />
 
-                                                </>
-                                            )
-                                        })
-                                    }
+                                                    </>
+                                                )
+                                            })
+                                        }
+                                    </div>
+                                    <div className='w-full mt-7 flex items-center justify-center gap-5'>
+                                        <button className='shadow-lg px-3 py-1 bg-slate-700 rounded-md text-yellow-100' onClick={goToPreviousPage}>Back</button>
+                                        <p className='text-2xl'>{currentPage}</p>
+                                        <button className='shadow-lg px-3 py-1 bg-slate-700 rounded-md text-yellow-100' onClick={goToNextPage}>Next</button>
+                                    </div>
                                 </div>
                             </>
                         ) : null
                     }
                 </div>
-
-
             </main>
         </>
     )
 }
 
-// for loading
-/* <h3 className="font-semibold mt-10">Look for your pokemon...</h3> */
+{/* <h3 className="font-semibold mt-10">Look for your pokemon...</h3> */ }
 
 
 const Loader = () => {
     return (
-        <div className="loader"></div>
+        <>
+            <div className='flex items-center flex-col'>
+                <p className='text-white'>Loading....</p>
+                <div className="loader">
+                </div>
+            </div>
+        </>
     )
 }
 

@@ -1,7 +1,7 @@
 import axios from 'axios'
 import React, { useEffect, useState } from 'react'
 
-const Info = ({ url }) => {
+const Info = ({ url, page }) => {
 
     const [data, setData] = useState(null)
 
@@ -10,7 +10,7 @@ const Info = ({ url }) => {
         axios.get(url)
             .then((response) => {
                 setData(response.data);
-                console.log(response.data);
+                // console.log(response.data);
             })
             .catch((err) => {
                 console.log(err);
@@ -19,7 +19,10 @@ const Info = ({ url }) => {
 
     useEffect(() => {
         getIfno();
-    }, [])
+        return (() => {
+            setData(null)
+        })
+    }, [page])
 
     return (
         <>
